@@ -1,0 +1,11 @@
+C:\desktop\gittest
+
+git init
+git remote add origin https://github.com/nakaoku/testpj.git
+git config --global user.email "nakaoku.dev@gmail.com"
+git config --global user.name "nakaoku"
+
+
+git add index.html
+git commit -m "Create index.html"
+git push origin master
