@@ -1,0 +1,162 @@
+<!doctype html>
+<html class="no-js">
+<html>
+<head>
+<meta charset="utf-8">
+<style type="text/css">
+<!--
+h1 { color:red; }
+p {color:darkblue; line-height:1.5;}
+-->
+</style>
+</head>
+<body>
+<h1>Hello world!</h1>
+<div id="clear">clear</div>
+<p>zip</p>
+<div id="next"></div>
+<div id="books">books</div>
+<div id="debug"></div>
+<div id="zip"></div>
+
+<canvas id="canvas" width="200" height="200"></canvas>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous">
+</script>
+<script type="text/javascript">
+
+$(document).ready(function(){
+  $('#debug').text("aaaaa");
+  //何かしらの処理
+  console.log("ready");
+  
+  c();
+});
+
+
+var context;
+var c = function(){
+  var canvas = document.getElementById('canvas');
+ context = canvas.getContext('2d');
+ console.log('canvas end');
+}
+
+$('#clear').on('click',function(){
+  $('#books').text( "books");
+  $('#debug').text( "debug");
+  $('#zip').text( "zip");
+});
+  
+$('#books').on('click',function(){
+  remain = search(0);
+  if( remain > 0 ) {
+    $('#next').text( "go next ");
+  }else {
+    $('#next').text( "" );
+  } 
+});
+
+var eco = function(i){
+ for(i=0;i<=10;i++){
+   
+ }
+}
+
+var search = function(idx){
+ var param = {q :  "isbn:4800711673"};
+ var page = 0;
+ var maxcount =40;
+ const params = {
+    q: 'intitle:太宰', // 検索キーワード。intitle:で書籍名が対象に
+    Country: "JP",           // 国の指定。JPで日本の指定
+    maxResults: maxcount,          // 取得する検索件数。10~40件を指定可。デフォルトは10件
+    startIndex: page,        // ページングのページ数を指定。0-index
+  };
+ var send_url = "https://www.googleapis.com/books/v1/volumes";
+ console.log("debug1");
+ $.ajax({
+   type: "GET",
+   cache: false,
+   data: params,
+   url: send_url,
+   dataType: "jsonp",
+   success: function (res) {
+      var remain = 0;
+      //結果によって処理を振り分ける
+      if ( maxcount < res.totalItems){
+        cnt = maxcount ;
+        remain = res.totalItems - maxcount;
+      } else{
+        cnt = res.totalItems;
+        remain = 0;
+      }
+      if (res.totalItems ) {
+        var html = '';
+        console.log("totalItems"+res.totalItems+" " + maxcount);
+        for (var i = 0; i <cnt  ; i++) {
+          console.log("index"+i);
+          var result = res.items[i];
+          html += '<h6>' + (i + 1) + '</h6>';
+          html += '<div>タイトル: ' + result.volumeInfo.title + '</div><div>著者' + result.volumeInfo.authors+ '</div>';
+        }
+        $('#debug').html(html);
+      } else {
+        $('#debug').html(res.message);
+        console.log("debug11");
+      }
+   },
+   error: function (XMLHttpRequest, textStatus, errorThrown) {
+     console.log(XMLHttpRequest);
+     console.log("debug2");
+   }
+ });
+ console.log("debug5");
+}
+
+
+$('p').on('click',function(){
+    console.log("click");
+    var param = {zipcode: "2310023"}
+    var send_url = "http://zipcloud.ibsnet.co.jp/api/search";
+        $.ajax({
+            type: "GET",
+            cache: false,
+            data: param,
+            url: send_url,
+            dataType: "jsonp",
+            success: function (res) {
+                //結果によって処理を振り分ける
+                if (res.status == 200) {
+                    //処理が成功したとき
+                    //該当する住所を表示
+                    var html = '';
+                    for (var i = 0; i < res.results.length; i++) {
+                        var result = res.results[i];
+                        console.log(res.results);
+                        html += '<h2>住所' + (i + 1) + '</h2>';
+                        html += '<div>都道府県コード：' + result.prefcode + '</div>';
+                        html += '<div>都道府県：' + result.address1 + '</div>';
+                        html += '<div>市区町村：' + result.address2 + '</div>';
+                        html += '<div>町域：' + result.address3 + '</div>';
+                        html += '<div>都道府県(カナ)：' + result.kana1 + '</div>';
+                        html += '<div>市区町村(カナ)：' + result.kana1 + '</div>';
+                        html += '<div>町域(カナ)：' + result.kana1 + '</div>';
+                    }
+                    $('#zip').html(html);
+                } else {
+                    //エラーだった時
+                    //エラー内容を表示
+                    $('#zip').html(res.message);
+ 
+                }
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                console.log(XMLHttpRequest);
+            }
+        });
+});
+
+
+</script>
+</body>
+</html>
