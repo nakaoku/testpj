@@ -1,0 +1,302 @@
+<html>
+<head>
+<title>HTAのサンプル</title>
+</head>
+<body>
+<script language="VBScript">
+
+function vbtest()
+ Dim fso
+ Dim filepath
+ filepath = fname.value
+ Set fso = CreateObject("Scripting.FileSystemObject")
+ aaa =  fso.GetFileName(filepath)
+ bbb =  fso.GetParentFolderName(filepath)
+ Msgbox aaa &" and "& bbb
+ vbtest = 0
+end  function
+
+</script>
+<script language="Javascript">
+function rand(min, max) {
+  return Math.floor( Math.random() * (max - min) + min);
+}
+
+function reader(txt,path){
+ const reader = new FileReader();
+ console.log(path);
+ var patharray = path.split("\\");
+ outfilename =patharray[patharray.length-1];
+ console.log(outfilename);
+ basename = "";
+ for(var line = 1; line < patharray.length-1; line++){
+   basename = basename + "\\" + patharray[line];
+ }
+ 
+ reader.onload = function(progressEvent){    
+    output = "";
+    var lines = this.result.split(/\r\n|\n/);
+    var prevnum = 0;
+    var upcase = 0;
+    var downcase = 0;
+    var upval = 0.0;
+    var downval = 0.0;
+    
+    for(var line = 0; line < lines.length-1; line++){
+      //console.log(line + " --> "+ lines[line]);
+      var array_day = lines[line].split(',');
+      var thisYYYYMMDD  = array_day[0];
+      var thisvalue = array_day[4];
+      
+      
+      var num = parseInt(thisvalue);
+      if( prevnum / num < 0.5 ){
+        console.log("changed big " + num + "  prev:" + prevnum);
+      }
+      if( prevnum / num > 5 ){
+       console.log("changed small "+ num + "  prev:" + prevnum);
+      }
+      if( prevnum > num ){
+        downcase++;
+        downval += ( num - prevnum); 
+      }
+      if( num >  prevnum ){
+        upcase++;
+        upval += (num - prevnum); 
+      }
+      
+      //var elms = thisYYYYMMDD.split('-');
+      //console.log("y:"+ elms[0] + " mm "+elms[1]+ " d: "+ elms[2]);
+      //var d = new Date(Date.UTC( elms[0], elms[1], elms[2]));
+      
+      var d = new Date(Date.parse(thisYYYYMMDD));
+      t = d.getTime()/1000;
+      console.log(d.getTime() + " d " + thisYYYYMMDD + "      "  + thisvalue );
+      output = output + t + "," + thisvalue + "," + thisYYYYMMDD + "\n";
+      prevnum = num;
+    }
+    //console.log(output);
+    
+    output = output + "\n\n\n" ;
+    output = output + "\n upcase  :" + upcase;
+    output = output + "\n upval   :" + upval;
+    output = output + "\n downcase:" + downcase;
+    output = output + "\n downval :" + downval;
+    const blob = new Blob([output],{type:"text/plain"});
+    const link = document.createElement('a');
+    console.log(window.URL);
+    link.href = window.URL.createObjectURL(blob);
+    link.download = 'out_' + outfilename;
+    link.click();
+    console.log("done");
+    
+  };
+  reader.readAsText(txt);
+ 
+}
+
+function writer(txt){
+}
+function test()
+{ 
+  var f = document.getElementById('fname');
+  console.log(f.value);
+  var txt = document.getElementById('intext');
+  txt.innerText =  f.value;
+  reader(f.files[0],f.value);
+}
+
+
+window.addEventListener("DOMContentLoaded",function(event){ init(); });
+var targetURL = "http://zip.cgis.biz/xml/zip.php";
+var xhr = new XMLHttpRequest();
+function svc(){
+  num = "";
+  for(i=0;i<7;i++){
+    num += rand(0,9);
+  }
+  console.log(num);
+  endpoint  = targetURL +"?zn="+ num;
+  xhr.open('GET', endpoint, true);
+  xhr.send();
+  xhr.onload = function() {
+    if (xhr.status != 200) { // レスポンスの HTTP ステータスを解析
+      //alert(`Error ${xhr.status}: ${xhr.statusText}`); // e.g. 404: Not Found
+    } else { // show the result
+      var txt = document.getElementById('intext');
+      txt.innerText = xhr.responseText;
+    }
+  };
+}
+
+function init(){
+  document.addEventListener('keydown',function(e){
+    e.key
+    svc();
+  },false);
+}
+
+function test2(){
+  var txt = document.getElementById('intext');
+  txt.innerText = "test";
+}
+
+</script>
+<script language="Javascript">
+var canvas;
+var ctx;
+var g = 0;
+
+function fg(){
+  g= g + 1;
+  var txt = document.getElementById('debug');
+  txt.innerText = g;
+  draw();
+}
+function cs_init(){
+ canvas = document.getElementById("cs");
+ canvas.addEventListener('mousedown', startPoint, false);
+ canvas.addEventListener('mousemove', movePoint, false);
+ canvas.addEventListener('mouseup', endPoint, false);
+ ctx = canvas.getContext("2d");
+ 
+ asset.push(1000);
+ asset.push(2000);
+ asset.push(3000);
+ asset.push(23000);
+ asset.push(5000);
+
+ addobj(100,200,"ts1","txt");
+ addobj(100,300,"2te4st","txt");
+ addobj(100,350,"3test","txt");
+ addobj(100,400,"4te4st","txt");
+ 
+ draw();
+ setInterval(fg,100);
+}
+
+
+function drwobj(c){
+  for (let i of objs) {
+    console.log(i.focused);
+    if( i.focused  == 1 ){
+      ctx.fillStyle = "#000000";
+    }else{
+      ctx.fillStyle = "#0000FF";
+    }
+    c.fillText(i.v, i.x, i.y);
+    if( i.t == "point" ){
+      ctx.arc( i.x,i.y, i.l , 0, Math.PI * 2, true);
+      i.l--;
+      if( i.l < 1 ){
+        i.s = deleted;
+      }
+    }
+  }
+  ctx.moveTo(initx, inity);
+  ctx.lineTo(nowx, nowy);
+  ctx.closePath();
+  ctx.stroke();
+  
+  for (var i = objs.length-1 ; i >= 0 ; i-- ) {
+     if( objs[i].focused == deleted ){
+       delete objs[i];
+     }
+  }
+}
+
+
+var asset  = new Array();
+var objs = new  Array();
+class obj {  }
+function addobj(x,y,v,t){
+o = new obj();
+o.x = x; o.y = y; o.v = v; 
+o.l = 10;
+o.t = t;
+o.focused = 0;
+objs.push(o);
+}
+
+
+
+
+function draw(){
+  ctx.clearRect(0, 0, ctx.canvas.clientWidth, ctx.canvas.clientHeight);
+  ctx.beginPath();
+  var str = asset[g];
+  ctx.fillStyle = "#000000";
+  ctx.font = "15px serif";
+  ctx.fillText(str, 100, 50);
+
+  ctx.rect(20, 40, 50, 50);
+  ctx.fillStyle = "#FF0000";
+  ctx.fill();
+  
+  drwobj(ctx);
+  ctx.closePath();
+}
+  
+window.addEventListener("load",cs_init);
+
+var idx_focused = -1;
+var deleted = -10;
+var drag = false;
+var initx = 0;
+var inity = 0;
+var nowx = 0;
+var nowy = 0;
+
+function startPoint(e){
+  var rect = e.target.getBoundingClientRect();
+  initx = e.clientX - rect.left;
+  inity = e.clientY - rect.top;
+  drag = true;
+  
+  
+  min = 9999999999;
+  focused = -1;
+  for (let i in objs) {
+    dx = objs[i].x - initx;
+    dy = objs[i].y - inity;
+    d = dx*dx + dy*dy;
+    if( d < min ){ 
+      idx_focused = i;
+      min = d; }
+  }
+  objs[idx_focused].focus = 1;
+  addobj(initx,inity, "pp","point");
+  console.log( focused );
+  
+}
+function movePoint(e){
+  var rect = e.target.getBoundingClientRect();
+
+  
+  if( drag ) {
+    nowx = e.clientX - rect.left;
+    nowy = e.clientY - rect.top;
+    
+    console.log("drag moving");
+  }
+
+}
+function endPoint(e){
+  drag = false;
+  for (let i in objs) {
+    objs[i].s = false;
+  }
+}
+
+
+</script>
+
+<input type="button" onclick="test()" value="実行">
+<input type="file" id="fname" >
+<br><br><br>
+<div id="intext"></div>
+<input type="button" onclick="test2()" value="実行"><br>
+<br><br>
+<div id="debug">null</div>
+<canvas id="cs" width="500" height="500"></canvas>
+</body></html>
